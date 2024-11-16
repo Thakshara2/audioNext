@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, 
   Tooltip, 
   Legend,
-  Props as LegendProps 
+  TooltipProps,
 } from 'recharts';
 
 import { cn } from '@/lib/utils';
@@ -262,13 +262,26 @@ ChartTooltipContent.displayName = 'ChartTooltip';
 
 const ChartLegend = Legend;
 
+// Define the LegendProps interface explicitly
+interface LegendProps {
+  payload?: Array<{
+    value: any;
+    type?: string;
+    id?: string;
+    color?: string;
+    payload?: any;
+  }>;
+  verticalAlign?: 'top' | 'middle' | 'bottom';
+}
+
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<'div'> &
-    Pick<LegendProps['payload'], 'payload' | 'verticalAlign'> & {
-      hideIcon?: boolean;
-      nameKey?: string;
-    }
+  React.ComponentProps<'div'> & {
+    payload?: LegendProps['payload'];
+    verticalAlign?: LegendProps['verticalAlign'];
+    hideIcon?: boolean;
+    nameKey?: string;
+  }
 >(
   (
     { className, hideIcon = false, payload, verticalAlign = 'bottom', nameKey },
