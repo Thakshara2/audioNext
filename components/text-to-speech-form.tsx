@@ -774,13 +774,16 @@ export function TextToSpeechForm() {
   };
 
   useEffect(() => {
+    // Store ref in a variable to avoid stale ref in cleanup
+    const currentAudioRef = audioRef.current;
+
     return () => {
-      // Cleanup audio elements when component unmounts
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
+      // Use the stored ref variable
+      if (currentAudioRef) {
+        currentAudioRef.pause();
+        currentAudioRef.src = '';
       }
-      // Revoke any object URLs
+      // Cleanup object URLs
       Object.values(generatedAudios).forEach(url => {
         if (url.startsWith('blob:')) {
           URL.revokeObjectURL(url);
@@ -1004,7 +1007,7 @@ export function TextToSpeechForm() {
                       <div className="space-y-2">
                         <h4 className="text-sm font-semibold">Style Control</h4>
                         <p className="text-sm text-muted-foreground">
-                          Controls how much the voice cloning should match the reference audio's style. Higher values mean stronger style matching.
+                          Controls how much the voice cloning should match the reference audio&apos;s style. Higher values mean stronger style matching.
                         </p>
                       </div>
                     </HoverCardContent>
