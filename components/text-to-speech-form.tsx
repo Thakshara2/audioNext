@@ -790,19 +790,21 @@ export function TextToSpeechForm() {
   }, [generatedAudios]);
 
   return (
-    <Card className="w-full max-w-5xl mx-auto bg-gradient-to-b from-background to-muted/20 border-2">
+    <Card className="w-full bg-background/80 backdrop-blur-sm border shadow-lg rounded-xl overflow-hidden">
       <Tabs defaultValue="single" className="p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">VoiceForge</h1>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              Text to Speech
+            </h1>
             <p className="text-sm text-muted-foreground">
-              Transform your text into natural-sounding speech
+              Convert your text into natural-sounding speech
             </p>
           </div>
           <Button
             variant="outline"
             size="icon"
-            className="border-2 border-primary/50 hover:bg-primary/10"
+            className="border-2 border-primary/50 hover:bg-primary/10 transition-colors"
             onClick={() => setShowApiConfig(!showApiConfig)}
           >
             <Settings className="h-4 w-4" />
@@ -810,14 +812,15 @@ export function TextToSpeechForm() {
         </div>
 
         {showApiConfig && (
-          <div className="mb-4 p-3 rounded-lg border-2 bg-card/50">
-            <div className="space-y-2">
+          <div className="mb-6 p-4 rounded-lg border-2 bg-card/50 backdrop-blur-sm animate-in fade-in-50 duration-200">
+            <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <Label className="text-sm">API Key Configuration</Label>
+                <Label className="text-sm font-medium">API Configuration</Label>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowApiConfig(false)}
+                  className="hover:bg-background/50"
                 >
                   ✕
                 </Button>
@@ -828,12 +831,13 @@ export function TextToSpeechForm() {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="Enter your Sieve API key"
-                  className="flex-1 px-3 py-1 text-sm rounded-md border bg-background"
+                  className="flex-1 px-3 py-2 text-sm rounded-md border bg-background/50 backdrop-blur-sm focus:border-primary/50 transition-colors"
                 />
                 <Button
                   variant="default"
                   size="sm"
                   onClick={() => handleApiKeyUpdate(apiKey)}
+                  className="px-4"
                 >
                   Save
                 </Button>
@@ -842,9 +846,13 @@ export function TextToSpeechForm() {
           </div>
         )}
 
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="single">Single Voice</TabsTrigger>
-          <TabsTrigger value="multi">Multiple Speakers</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="single" className="data-[state=active]:bg-primary/10">
+            Single Voice
+          </TabsTrigger>
+          <TabsTrigger value="multi" className="data-[state=active]:bg-primary/10">
+            Multiple Speakers
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="single">
@@ -855,7 +863,7 @@ export function TextToSpeechForm() {
                 placeholder="Enter text to convert to speech..."
                 value={formData.text}
                 onChange={handleTextAreaResize}
-                className="min-h-[80px] resize-none transition-height duration-150"
+                className="min-h-[200px] resize-none transition-height duration-150 text-base leading-relaxed"
                 onFocus={(e) => {
                   e.target.style.height = 'auto';
                   e.target.style.height = `${e.target.scrollHeight}px`;
@@ -863,14 +871,14 @@ export function TextToSpeechForm() {
               />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Voice</Label>
                 <Select
                   value={formData.voice}
                   onValueChange={(value: Voice) => setFormData(prev => ({ ...prev, voice: value }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select voice" />
                   </SelectTrigger>
                   <SelectContent>
@@ -889,7 +897,7 @@ export function TextToSpeechForm() {
                   value={formData.emotion}
                   onValueChange={(value: Emotion) => setFormData(prev => ({ ...prev, emotion: value }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select emotion" />
                   </SelectTrigger>
                   <SelectContent>
@@ -921,21 +929,86 @@ export function TextToSpeechForm() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label>Stability ({formData.stability})</Label>
+                <Label>Reference Audio</Label>
+                <div className="space-y-2">
+                  <Select
+                    value={formData.storedVoiceId}
+                    onValueChange={(value) => {
+                      const selectedVoice = storedVoices.find(v => v.id === value);
+                      if (selectedVoice) {
+                        setFormData(prev => ({
+                          ...prev,
+                          storedVoiceId: value,
+                          referenceAudioUrl: selectedVoice.url
+                        }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select saved voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {storedVoices.map((voice) => (
+                        <SelectItem key={voice.id} value={voice.id}>
+                          {voice.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full border-dashed"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {formData.referenceAudio ? formData.referenceAudio.name : 'Upload New Voice'}
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
                 </div>
-                <Slider
-                  value={[formData.stability || 0]}
-                  onValueChange={([value]) => setFormData(prev => ({ ...prev, stability: value }))}
-                  min={0}
-                  max={1}
-                  step={0.1}
-                />
+                {formData.referenceAudioUrl && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="font-normal">
+                      {formData.storedVoiceId 
+                        ? `Using: ${storedVoices.find(v => v.id === formData.storedVoiceId)?.name}`
+                        : 'New voice uploaded'}
+                    </Badge>
+                    <audio
+                      src={formData.referenceAudioUrl}
+                      controls
+                      className="h-8 w-32"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <Label>Style ({formData.style})</Label>
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold">Style Control</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Controls how much the voice cloning should match the reference audio's style. Higher values mean stronger style matching.
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </div>
                 <Slider
                   value={[formData.style || 0]}
@@ -943,6 +1016,36 @@ export function TextToSpeechForm() {
                   min={0}
                   max={1}
                   step={0.1}
+                  className="[&_.slider-thumb]:h-4 [&_.slider-thumb]:w-4"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label>Stability ({formData.stability})</Label>
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold">Stability Control</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Controls the stability of the voice. Higher values will make the voice more consistent but may sound less natural.
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                </div>
+                <Slider
+                  value={[formData.stability || 0]}
+                  onValueChange={([value]) => setFormData(prev => ({ ...prev, stability: value }))}
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  className="[&_.slider-thumb]:h-4 [&_.slider-thumb]:w-4"
                 />
               </div>
 
@@ -952,6 +1055,21 @@ export function TextToSpeechForm() {
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, wordTimestamps: checked }))}
                 />
                 <Label>Generate word timestamps</Label>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold">Word Timestamps</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Generate timing information for each word in the generated speech. Useful for synchronization and subtitles.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
               </div>
             </div>
 
