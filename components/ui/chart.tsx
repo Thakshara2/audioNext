@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, 
   Tooltip, 
   Legend,
-  LegendProps 
+  Props as LegendProps 
 } from 'recharts';
 
 import { cn } from '@/lib/utils';
@@ -265,7 +265,7 @@ const ChartLegend = Legend;
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'> &
-    Pick<LegendProps, 'payload' | 'verticalAlign'> & {
+    Pick<LegendProps['payload'], 'payload' | 'verticalAlign'> & {
       hideIcon?: boolean;
       nameKey?: string;
     }
